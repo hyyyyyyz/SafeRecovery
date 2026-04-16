@@ -48,6 +48,10 @@ class SafetyLogger:
         self.contact_viol_during_active_rec = 0
         self.orient_viol_during_active_rec = 0
 
+        # --- Locomotion-only hazardous window: upright and not recovering ---
+        self.loco_only_steps = 0
+        self.torque_viol_during_loco_only = 0
+
         # Per-attempt violation tracking
         self._recovery_had_violation = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
         self._recovery_had_hazardous_viol = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
@@ -107,6 +111,10 @@ class SafetyLogger:
             self.contact_viol_during_active_rec += (contact_force_violation & active_rec).sum().item()
             self.orient_viol_during_active_rec += (orientation_violation & active_rec).sum().item()
 
+            loco_only = (~is_fallen) & (recovery_phase == 0)
+            self.loco_only_steps += loco_only.sum().item()
+            self.torque_viol_during_loco_only += (torque_violation & loco_only).sum().item()
+
         # Per-attempt violation tracking (reset on new falls)
         self._recovery_had_violation |= (any_violation & fallen_mask)
         self._recovery_had_hazardous_viol |= (hazardous_violation & fallen_mask)
@@ -135,6 +143,8 @@ class SafetyLogger:
 
     def summarize(self):
         total_env_steps = max(self.total_steps * self.num_envs, 1)
+        dt = 0.02
+        total_time_sec = max(total_env_steps * dt, 0.001)
         total_falls = max(self.fall_count, 1)
         total_attempts = self.recovery_success_count + self.recovery_failure_count
         total_attempts_denom = max(total_attempts, 1)
@@ -147,12 +157,13 @@ class SafetyLogger:
         # Coupling denominators
         total_fallen_sec = max(self.total_fallen_steps * 0.02, 0.001)
         active_rec_sec = max(self.active_recovery_steps * 0.02, 0.001)
+        loco_only_sec = max(self.loco_only_steps * 0.02, 0.001)
 
         return {
-            # Axis 2: Safety — per-step rates
-            "safety/torque_violation_rate": self.torque_violation_count / total_env_steps,
-            "safety/contact_force_violation_rate": self.contact_force_violation_count / total_env_steps,
-            "safety/orientation_violation_rate": self.orientation_violation_count / total_env_steps,
+            # Axis 2: Safety — rates per second
+            "safety/torque_violation_rate": self.torque_violation_count / total_time_sec,
+            "safety/contact_force_violation_rate": self.contact_force_violation_count / total_time_sec,
+            "safety/orientation_violation_rate": self.orientation_violation_count / total_time_sec,
             "safety/total_violations": (
                 self.torque_violation_count + self.contact_force_violation_count + self.orientation_violation_count
             ),
@@ -187,14 +198,21 @@ class SafetyLogger:
             "coupling/torque_per_active_rec_sec": self.torque_viol_during_active_rec / active_rec_sec if self.active_recovery_steps > 0 else 0,
             "coupling/contact_per_active_rec_sec": self.contact_viol_during_active_rec / active_rec_sec if self.active_recovery_steps > 0 else 0,
             "coupling/orient_per_active_rec_sec": self.orient_viol_during_active_rec / active_rec_sec if self.active_recovery_steps > 0 else 0,
+            # Locomotion-only hazardous torque rate
+            "coupling/torque_per_loco_only_sec": self.torque_viol_during_loco_only / loco_only_sec if self.loco_only_steps > 0 else 0,
             # Axis 4: Per-attempt violation fractions
             "coupling/pct_attempts_with_violation": self.recoveries_with_violation / total_attempts_denom,
             "coupling/pct_attempts_with_hazardous": self.recoveries_with_hazardous_viol / total_attempts_denom,
             "coupling/pct_success_with_violation": self.successful_with_violation / success_denom if self.recovery_success_count > 0 else 0,
             "coupling/pct_success_with_hazardous": self.successful_with_hazardous_viol / success_denom if self.recovery_success_count > 0 else 0,
             # Raw denominators for transparency
+            "raw/total_env_steps": total_env_steps,
+            "raw/total_time_sec": total_time_sec,
+            "raw/torque_violation_count": self.torque_violation_count,
+            "raw/contact_force_violation_count": self.contact_force_violation_count,
+            "raw/orientation_violation_count": self.orientation_violation_count,
             "raw/total_fallen_steps": self.total_fallen_steps,
             "raw/active_recovery_steps": self.active_recovery_steps,
-            "raw/total_fallen_sec": self.total_fallen_steps * 0.02,
-            "raw/active_recovery_sec": self.active_recovery_steps * 0.02,
+            "raw/total_fallen_sec": self.total_fallen_steps * dt,
+            "raw/active_recovery_sec": self.active_recovery_steps * dt,
         }

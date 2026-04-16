@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Vanilla",
+    "result": {
+      "profile/env_create_time_sec": 4.25205135345459,
+      "profile/rollout_time_sec": 36.05967164039612,
+      "profile/num_eval_steps": 1000,
+      "profile/num_envs": 128,
+      "profile/steps_per_sec": 27.731811037340186,
+      "profile/env_steps_per_sec": 3549.671812779544,
+      "profile/realtime_factor": 0.5546362083497182,
+      "profile/mem_allocated_mb": 14.5498046875,
+      "profile/mem_reserved_mb": 30.0,
+      "profile/sim_time_sec": 19.999999552965164,
+      "safety/total_violations": 622,
+      "safety/violations_per_sec": 31.100000695139187,
+      "meta/task": "safe_recovery_a1",
+      "meta/load_run": "Mar18_16-16-27_",
+      "meta/timestamp": "2026-04-15T19:23:14.817731"
+    }
+  },
+  {
+    "name": "CaT",
+    "result": {
+      "profile/env_create_time_sec": 3.055452585220337,
+      "profile/rollout_time_sec": 35.84360957145691,
+      "profile/num_eval_steps": 1000,
+      "profile/num_envs": 128,
+      "profile/steps_per_sec": 27.898975911073503,
+      "profile/env_steps_per_sec": 3571.0689166174084,
+      "profile/realtime_factor": 0.5579795057496559,
+      "profile/mem_allocated_mb": 14.66796875,
+      "profile/mem_reserved_mb": 30.0,
+      "profile/sim_time_sec": 19.999999552965164,
+      "safety/total_violations": 514,
+      "safety/violations_per_sec": 25.700000574439777,
+      "meta/task": "safe_recovery_a1_cat",
+      "meta/load_run": "Mar18_18-05-33_",
+      "meta/timestamp": "2026-04-15T19:23:54.551219"
+    }
+  },
+  {
+    "name": "Recovery",
+    "result": {
+      "profile/env_create_time_sec": 3.1403346061706543,
+      "profile/rollout_time_sec": 36.014028787612915,
+      "profile/num_eval_steps": 1000,
+      "profile/num_envs": 128,
+      "profile/steps_per_sec": 27.76695731258902,
+      "profile/env_steps_per_sec": 3554.1705360113947,
+      "profile/realtime_factor": 0.5553391338389833,
+      "profile/mem_allocated_mb": 14.7861328125,
+      "profile/mem_reserved_mb": 30.0,
+      "profile/sim_time_sec": 19.999999552965164,
+      "safety/total_violations": 1168,
+      "safety/violations_per_sec": 58.40000130534175,
+      "meta/task": "safe_recovery_a1_fallen",
+      "meta/load_run": "Mar18_19-54-41_",
+      "meta/timestamp": "2026-04-15T19:24:35.207725"
+    }
+  }
+]
